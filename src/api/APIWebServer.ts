@@ -1,6 +1,5 @@
 import express, { NextFunction, Request, Response} from "express";
 import * as swaggerUi from "swagger-ui-express"
-import * as dotenv from "dotenv"
 import cors from "cors";
 import * as core from 'express-serve-static-core';
 

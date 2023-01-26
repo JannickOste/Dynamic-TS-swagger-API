@@ -3,7 +3,7 @@ import * as core from 'express-serve-static-core';
 import { GetAPISpecMetadataOfMethod } from '../api/APISpecMetadata';
 
 
-export  type HTTPRequestMethodType = "get" |"put" | "post" | "patch" | "delete";
+export  type IHTTPRequestMethodType = "get" |"put" | "post" | "patch" | "delete";
 
 export default abstract class RouteBase 
 {
@@ -29,7 +29,7 @@ export default abstract class RouteBase
                 
                 for(let requestMethod of Object.keys(pathObject))
                 {
-                    this.express[requestMethod as HTTPRequestMethodType](route, callbackMethod?.value);
+                    this.express[requestMethod as IHTTPRequestMethodType](route, callbackMethod?.value);
                 }
             }
         }

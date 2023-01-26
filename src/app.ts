@@ -1,5 +1,3 @@
-import express from "express";
-import * as swaggerUi from "swagger-ui-express"
 import Database from "./services/database";
 import * as dotenv from "dotenv"
 import APIWebServer from "./api/APIWebServer";
