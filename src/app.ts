@@ -1,131 +1,101 @@
 import express from "express";
 import * as swaggerUi from "swagger-ui-express"
 import Database from "./services/database";
-import routesMapper from "./services/routesMapper"
 import * as dotenv from "dotenv"
-import cors from "cors";
-import * as core from 'express-serve-static-core';
-
-import * as http from "http";
-import * as https from "https"
-import { IEnviromentServer } from "./types/IEnviromentServer";
-import * as OpenApiValidator from 'express-openapi-validator';
-import ApiSpecGenerator from "./APISpecBuilder";
+import APIWebServer from "./api/APIWebServer";
+import Logger from "./utils/logger";
 
 
 class App 
 {
-    private readonly express:core.Express;
-    private readonly serverInstances:any[] = [];
-
-    /**
-     * Server initializers, require a port or crede
-     */
-    private readonly serverLoader:IEnviromentServer[] = [
-        {
-            env_port_label: "SERVER_PORT_HTTP",
-            throwOnNull: true,
-            listener: (port) => http.createServer(this.express).listen(port)
-        },
-        {
-            env_port_label: "SERVER_PORT_HTTPS",
-            listenerWithArgs: (data, port) => https.createServer(this.express).listen(data, port)
-        }
-    ]
+    private readonly serverInstance:APIWebServer;
 
     constructor()
     {
-        this.express = express();
+
+        this.serverInstance = new APIWebServer();
     }
-
-    /**
-     * Load enviroment data and configure application services
-     */
-    async configure(): Promise<void>
+    
+    private async configure(): Promise<boolean>
     {
-        dotenv.config();    
-
-        this.express.use(cors({
-            origin: '*', 
-            allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept',
-            methods: "GET, POST, PUT, PATCH, DELETE"
-        }));
-        
-        this.express.use(express.json())     
-        this.express.use(express.text())
-        this.express.use(express.urlencoded({extended: true}))
-
-        const spec = await new ApiSpecGenerator().build("./src/routes/**/*.ts");
-        this.express.use(process.env.SWAGGER_DOC_ENDPOINT as string, 
-                    swaggerUi.serve, swaggerUi.setup(spec));
-        
-        this.express.use(
-            OpenApiValidator.middleware({
-              apiSpec: spec,
-              validateRequests: true,
-              validateResponses: true,
-            })
-        );
-        /**
-         * Error handler
-        this.express.use((err: any, req: any, res: any, next: any) => {
-            // format error
-            res.status(err.status || 500).json({
-              message: err.message,
-              errors: err.errors,
-            });
-        });
-        */
-
-        this.express.get("/", (req:any, res:any) => res.redirect(process.env.SWAGGER_DOC_ENDPOINT));
-        
-        await routesMapper(this.express);
-
-        await Database.Singleton.connector.initialize();
-    }
-
-    /**
-     * Load application service listeners and assign them to the server stack.
-     */
-    async start()
-    {
-        for(let serverInitializer of this.serverLoader)
-        {
-            let portRaw:string|undefined = process.env[serverInitializer.env_port_label];
-            if(portRaw)
+        const serviceStarts = [
             {
-                portRaw = portRaw.trim();
+                onInitMessage:`Attempting to connect to mariadb server.`,
+                onFailMessage:'Failed to connect to database...',
+                onSuccessMessage:'Succesfully connected to database.',
+                startCallback: async() => await Database.Singleton.connector.initialize()
+            },
+            {
+                onInitMessage:`Attempting to build API configuration`,
+                onFailMessage:'Failed to configure API endpoints',
+                onSuccessMessage:'Succesfully configure API service',
+                startCallback: async() => await this.serverInstance.configure()
+            }
+        ]
 
-                if(/[0-9]+/.test(portRaw))
-                {
-                    const port:number = parseInt(portRaw);
-                    const startMessage:string = `Starting webserver on port: ${portRaw}`
-
-                    if(serverInitializer.listener)
-                    {
-                        console.log(startMessage);
-                        this.serverInstances.push(serverInitializer.listener(port));
-                    }
-                    else if(serverInitializer.listenerWithArgs)
-                    {
-                        if(serverInitializer.credentials)
-                        {
-                            console.log(startMessage);
-
-                            this.serverInstances.push(serverInitializer.listenerWithArgs(serverInitializer.credentials, port));
-                        } else console.log(`[${serverInitializer.env_port_label}]: Attempting to load server with credentials, but no credentials found...`);
-                    }
-                    else console.log(`[${serverInitializer.env_port_label}]: No listener found for server`);
-                } else console.log(`[${serverInitializer.env_port_label}]: value '${serverInitializer.env_port_label}' is invalid,  `);
+        for(let service of serviceStarts)
+        {
+            try
+            {
+                Logger.log(this, service.onInitMessage);
+                await service.startCallback()
+                Logger.log(this, service.onSuccessMessage)
+            }
+            catch(e)
+            {
+                Logger.error(this, service.onFailMessage)
+                return false;
             }
         }
 
+        return true;
     }
-}
 
-export default (async() => {
+    async startHTTP()
+    {
+        dotenv.config();    
+
+        const {SERVER_PORT_HTTP, SERVER_DOMAIN, SWAGGER_DOC_ENDPOINT} = process.env;
+        if(SERVER_PORT_HTTP)
+        {
+            if(/[0-9]+/.test(SERVER_PORT_HTTP))
+            {
+                if(await this.configure() && SWAGGER_DOC_ENDPOINT)
+                {
+                    Logger.log(this, `Starting API using HTTP on: http://${SERVER_DOMAIN}:${SERVER_PORT_HTTP}${SWAGGER_DOC_ENDPOINT}/`);
+                    
+                    return this.serverInstance.startHTTP(parseInt(SERVER_PORT_HTTP))
+                } else Logger.error(this, "Failed to configure application, exiting...");
+            } else Logger.error(this, `Invalid enviroment variabe 'SERVER_PORT_HTTP' found '${SERVER_PORT_HTTP}' but value must be numeric.`);
+        } else Logger.error(this, `Enviroment variabe 'SERVER_PORT_HTTP' is unset, variable required to start server on HTTP.`);
+    }
+
+    async startHTTPS()
+    {
+        return Logger.log(this, "HTTPS is temporarly disabled until credential loading is reimpemented")
+        /*
+        dotenv.config();    
+
+        const {SERVER_PORT_HTTPS, SERVER_DOMAIN} = process.env;
+        if(SERVER_PORT_HTTPS)
+        {
+            if(/[0-9]+/.test(SERVER_PORT_HTTPS))
+            {
+                if(await this.configure())
+                {
+
+                    Logger.log(this, `Starting API using HTTP on: https://${SERVER_DOMAIN}:${SERVER_PORT_HTTPS}/`);
+                    
+                    return this.serverInstance.startHTTP(parseInt(SERVER_PORT_HTTPS))
+                } else Logger.error(this, "Failed to configure application, exitting...");
+            } else Logger.error(this, `Invalid enviroment variabe 'SERVER_PORT_HTTP' found '${SERVER_PORT_HTTPS}' but value must be numeric.`);
+        } else Logger.error(this, `Enviroment variabe 'SERVER_PORT_HTTP' is unset, variable required to start server on HTTP.`);
+        */
+    }
+
+}
+(async() => {
     const application = new App();
 
-    await application.configure();
-    await application.start();
-})();
+    await application.startHTTP();
+})()

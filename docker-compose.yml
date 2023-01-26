@@ -1,13 +1,16 @@
 version: "3.8"
 services: 
-  api-db: 
+  # Database policies
+  database: 
+    restart: on-failure
     image: mariadb:10.3.35
-    command: --init-file /data/dbinit.sql
+    command: --init-file /usr/lib/bin/mysql/dbinit.sql
     volumes: 
-      - ./assets/build/dbinit.sql:/data/dbinit.sql
+      - ./assets/build/dbinit.sql:/usr/lib/bin/mysql/dbinit.sql
     env_file:
-      - './docker.env'
+      - '.env'
     ports:
       - 3306:3306
     expose:
       - 3306
+    

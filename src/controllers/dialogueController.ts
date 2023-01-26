@@ -1,14 +1,16 @@
 import { Repository } from "typeorm";
 import Database from "../services/database";
-import Dialogue, { DialogueSchema } from "../entities/dialogue";
+import Dialogue from "../entities/dialogue";
 import RouteBase from "../types/routeBase";
 import { Request, Response } from "express";
 import { IExpressRouteHandlerType } from "../types/IExpressRouteType";
 import { OpenAPIV3 } from "express-openapi-validator/dist/framework/types";
-import APISpecMetadata from "../APISpecMetadata";
+import APISpecMetadata from "../api/APISpecMetadata";
 import { Type } from "@sinclair/typebox";
 import mapper from "../utils/mapper";
 import "reflect-metadata";
+import { DialogueSchema } from "../schemas/DialogueSchema";
+import { DialogueUpdateSchema } from "../schemas/DialogueUpdateSchema";
 
 /**
  * @controller
@@ -29,7 +31,7 @@ export default class DialogueRouteHandler extends RouteBase
           summary: 'Get all dialogue entity objects', 
           responses: {
             200: {
-              description: 'successful response',
+              description: 'All dialogue entity objects',
               content: {
                 'application/json': {
                   schema: Type.Array(DialogueSchema) as OpenAPIV3.SchemaObject,
@@ -68,7 +70,7 @@ export default class DialogueRouteHandler extends RouteBase
             */],
             responses: {
                 200: {
-                    description: "Dialogue results",
+                    description: "The dialogue entity matching the specified ID parameter",
                     content: {
                         "application/json": {
                             schema: DialogueSchema as OpenAPIV3.SchemaObject
@@ -76,7 +78,7 @@ export default class DialogueRouteHandler extends RouteBase
                     }
                 },
                 400: {
-                    description: "Bad request",
+                    description: "Bad request - Invalid parameters",
                     content: {
                         "application/json": {
                             schema: Type.Strict(Type.Object({
@@ -113,14 +115,14 @@ export default class DialogueRouteHandler extends RouteBase
                 required: true,
                 content: {
                     'application/json': {
-                        schema: DialogueSchema as OpenAPIV3.SchemaObject,
+                        schema: DialogueUpdateSchema as OpenAPIV3.SchemaObject,
                     }
                 }
             },
 
             responses: {
                 200: {
-                    description: 'successful response',
+                    description: 'The newly created dialogue entity data.',
                     content: {
                         'application/json': {
                             schema: DialogueSchema as OpenAPIV3.SchemaObject

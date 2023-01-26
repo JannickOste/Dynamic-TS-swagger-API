@@ -24,10 +24,10 @@ export default class Database
             password: process.env.DATABASE_PASS,
             database: process.env.DATABASE_DB,
             synchronize: true,
-            logging: true,
+            logging: false,
             entities: [Dialogue],
             subscribers: [],
-            migrations: [],
+            migrations: []
         })
     }
 }

@@ -6,6 +6,7 @@ import "reflect-metadata"
 export default class APISpecBuilder
 {
   private static get openapi():string {return "3.0.0"}
+  
   private static get info(): OpenAPIV3.InfoObject 
   {
     const {SWAGGER_API_NAME, SWAGGER_API_VERSION} = process.env;
@@ -28,18 +29,19 @@ export default class APISpecBuilder
     const servers = [];
 
     const {
+      SERVER_DOMAIN,
       SERVER_PORT_HTTP,
       SERVER_PORT_HTTPS
     } = process.env;
 
     if(SERVER_PORT_HTTP)
       servers.push({
-        url: "http://localhost:"+SERVER_PORT_HTTP
+        url: `http://${SERVER_DOMAIN}:${SERVER_PORT_HTTP}`
       });
 
     if(SERVER_PORT_HTTPS)
       servers.push({
-        url: "http://localhost:"+SERVER_PORT_HTTPS
+        url: `https://${SERVER_DOMAIN}:${SERVER_PORT_HTTPS}`
       })
       
     return servers;
