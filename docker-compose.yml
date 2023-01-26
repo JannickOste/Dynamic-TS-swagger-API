@@ -1,0 +1,13 @@
+version: "3.8"
+services: 
+  api-db: 
+    image: mariadb:10.3.35
+    command: --init-file /data/dbinit.sql
+    volumes: 
+      - ./assets/build/dbinit.sql:/data/dbinit.sql
+    env_file:
+      - './docker.env'
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
