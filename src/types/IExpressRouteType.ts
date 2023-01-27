@@ -1,4 +1,4 @@
 import { RequestListener } from "http";
-import { Response, Request } from "express";
+import { Response } from "express";
 
 export type IExpressRouteHandlerType = Promise<RequestListener|Response<any, Record<string, any>>>

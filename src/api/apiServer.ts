@@ -112,7 +112,7 @@ export default class apiServer
               apiSpec: spec,
               validateRequests: true,
               validateResponses: true,
-              
+
             })
         );
         
@@ -133,7 +133,6 @@ export default class apiServer
                 if(hadError)
                 {
                     Logger.error(this, "A socket error occured");
-                    
                     console.dir(socket)
                 }
 
@@ -146,7 +145,7 @@ export default class apiServer
     public startHTTP =  (port: number) => this.listener = this.configureListener(http.createServer(this.express).listen(port))
     public startHTTPS = (port:number)  => this.listener = this.configureListener(https.createServer(this.express).listen(port));
 
-    public destroy = (listenerExitCallback?: (err?: Error | undefined) => void) => {
+    public destroy = (listenerExitCallback?: (err?: Error) => void) => {
         for(let socket of this.sockets)
         {
             socket.destroy();
