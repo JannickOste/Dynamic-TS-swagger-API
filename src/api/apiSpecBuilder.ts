@@ -6,6 +6,7 @@ import { RouteDecoratorLabel } from './decorators/route';
 import { ResponseDecoratorLabel } from './decorators/responses';
 import { HTTPMethodDecoratorLabel } from './decorators/httpMethod';
 import { BodyDataDecoratorLabel } from './decorators/bodyData';
+import { IHTTPRequestMethodType } from '../types/IHTTPRequestMethodType';
 
 export default class APISpecBuilder
 {
@@ -119,7 +120,7 @@ export default class APISpecBuilder
     return paths;
   }
 
-  public static buildSpecFromMethod = (obj: any, propName: string): any => {
+  public static buildSpecFromMethod = (obj: any, propName: string, requestsRequireBody:IHTTPRequestMethodType[] = ["post", "put", "delete"]): any => {
     const requestMethods = Reflect.getMetadata(HTTPMethodDecoratorLabel, obj, propName);
 
     let result:OpenAPIV3.PathItemObject = {}
@@ -140,6 +141,10 @@ export default class APISpecBuilder
             if(bodyData)
             {
               data[method]["requestBody"] = bodyData
+            } else if(requestsRequireBody.includes(method as IHTTPRequestMethodType))
+            {
+              Logger.error(this, `Attempting to assign '${method}' method without body data for endpoints '${route.route}' but this is marked as required, skipping generation`);
+              continue;
             }
 
 

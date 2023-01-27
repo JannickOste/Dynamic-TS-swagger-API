@@ -2,11 +2,11 @@ import { Static, Type } from "@sinclair/typebox";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { DialogueSchema } from "../schemas/dialogueSchema";
 
-
-export type IDialogueType = Static<typeof DialogueSchema>;
-
+/**
+ * A dialogue TypeORM entity that is build upon a Swagger OpenAPIV3 type object.
+ */
 @Entity()
-export default class Dialogue implements IDialogueType
+export default class Dialogue implements Static<typeof DialogueSchema>
 {
     @PrimaryGeneratedColumn()
     id!:number;

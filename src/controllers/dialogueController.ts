@@ -85,8 +85,8 @@ export default class DialogueController extends RouteBase
         return res.status(200).json(dialogue)
     }
 
-    @Route("/dialogue/update", "Update a dialogue entity")
     @HTTPMethod(["put"])
+    @Route("/dialogue/update", "Update a dialogue entity")
     @Responses([
         {
             statusCode: 200,
@@ -133,8 +133,8 @@ export default class DialogueController extends RouteBase
      * @param res 
      * @returns 
      */
-    @Route("/dialogues/create", 'Create a new dialogue entity')
     @HTTPMethod(["post"])
+    @Route("/dialogues/create", 'Create a new dialogue entity')
     @Responses([
         {
             statusCode: 200,
@@ -156,8 +156,8 @@ export default class DialogueController extends RouteBase
      * Example Delete 
      * 
      */
-    @Route("/dialogue/delete", "Delete a dialogue entity")
     @HTTPMethod(["delete"])
+    @Route("/dialogue/delete", "Delete a dialogue entity")
     @Responses([
         {
             statusCode: 204,
