@@ -5,12 +5,12 @@ import RouteBase from "../types/routeBase";
 import { Request, Response } from "express";
 import { IExpressRouteHandlerType } from "../types/IExpressRouteType";
 import { OpenAPIV3 } from "express-openapi-validator/dist/framework/types";
-import APISpecMetadata from "../api/APISpecMetadata";
+import APISpecMetadata from "../api/apiSpecMetadata";
 import { Type } from "@sinclair/typebox";
 import mapper from "../utils/mapper";
 import "reflect-metadata";
-import { DialogueSchema } from "../schemas/DialogueSchema";
-import { DialogueUpdateSchema } from "../schemas/DialogueUpdateSchema";
+import { DialogueSchema } from "../schemas/dialogueSchema";
+import { DialogueUpdateSchema } from "../schemas/dialogueUpdateSchema";
 
 /**
  * @controller

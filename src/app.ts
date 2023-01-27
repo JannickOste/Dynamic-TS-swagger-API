@@ -1,17 +1,19 @@
 import Database from "./services/database";
 import * as dotenv from "dotenv"
-import APIWebServer from "./api/APIWebServer";
+import apiServer from "./api/apiServer";
 import Logger from "./utils/logger";
+import { Socket } from "node:net";
 
 
-class App 
+export class App 
 {
-    private readonly serverInstance:APIWebServer;
+    private readonly serverInstance:apiServer;
+    private readonly serverSockets:Set<Socket> = new Set();
 
     constructor()
     {
 
-        this.serverInstance = new APIWebServer();
+        this.serverInstance = new apiServer();
     }
     
     private async configure(): Promise<boolean>
@@ -41,7 +43,8 @@ class App
             }
             catch(e)
             {
-                Logger.error(this, service.onFailMessage)
+                Logger.error(this, service.onFailMessage);
+                Logger.exception(this, (e as Error).message)
                 return false;
             }
         }
@@ -62,7 +65,9 @@ class App
                 {
                     Logger.log(this, `Starting API using HTTP on: http://${SERVER_DOMAIN}:${SERVER_PORT_HTTP}${SWAGGER_DOC_ENDPOINT}/`);
                     
-                    return this.serverInstance.startHTTP(parseInt(SERVER_PORT_HTTP))
+                    this.serverInstance.startHTTP(parseInt(SERVER_PORT_HTTP));
+
+               
                 } else Logger.error(this, "Failed to configure application, exiting...");
             } else Logger.error(this, `Invalid enviroment variabe 'SERVER_PORT_HTTP' found '${SERVER_PORT_HTTP}' but value must be numeric.`);
         } else Logger.error(this, `Enviroment variabe 'SERVER_PORT_HTTP' is unset, variable required to start server on HTTP.`);
@@ -91,9 +96,18 @@ class App
         */
     }
 
-}
-(async() => {
-    const application = new App();
+    async destroy () {
+        this.serverInstance.destroy();
+        await Database.Singleton.destroy();
+    }
 
-    await application.startHTTP();
-})()
+}
+
+if(process.env.PWD === process.env.INIT_CWD)
+{
+    (async() => {
+        const application = new App();
+    
+        await application.startHTTP();
+    })()
+} 

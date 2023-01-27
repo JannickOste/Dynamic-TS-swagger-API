@@ -6,21 +6,30 @@ import * as core from 'express-serve-static-core';
 import * as http from "http";
 import * as https from "https"
 import * as OpenApiValidator from 'express-openapi-validator';
-import APISpecBuilder from "./APISpecBuilder";
 import glob from "glob";
 import RouteBase from "../types/routeBase";
 import { IExpressRouteHandlerType } from "../types/IExpressRouteType";
 import Logger from "../utils/logger";
+import APISpecBuilder from "./apiSpecBuilder";
+import { Socket } from "node:net";
 
+type IHTTPSCredentials = {
+    key:string;
+    certificate:string;
+}
 
-export default class APIWebServer 
+export default class apiServer 
 {    
     private readonly express:core.Express;
-    private listener?:http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
+    private listener?:http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
+                        |https.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
+
+    private sockets: Set<Socket> = new Set();
 
     constructor()
     {
         this.express = express();
+        
     }
 
     /**
@@ -61,13 +70,9 @@ export default class APIWebServer
                 const moduleInstance: RouteBase = new module.default(this.express);
                 if(moduleInstance)
                 {
-                    if(moduleInstance.Setup)
-                    {
-                        Logger.log(this, `allocating endpoints for '${moduleInstance.constructor.name}'`);
+                    Logger.log(this, `allocating endpoints for '${moduleInstance.constructor.name}'`);
 
-                        moduleInstance.Setup();
-                    }
-                    else throw new Error(`${moduleInstance} has not setup function`)
+                    moduleInstance.Setup();
                 }
             }
         }
@@ -94,13 +99,16 @@ export default class APIWebServer
         }));
 
         // Build the API metadata and bind to swaggerUI
-        const spec = await new APISpecBuilder().build(`${process.env.SWAGGER_API_CONTROLLER_ROOT}**/*.ts`);
+        const spec = await new APISpecBuilder().build(
+            `${process.env.SWAGGER_API_CONTROLLER_ROOT}**/*Controller.ts`,
+            `${process.env.SWAGGER_API_SCHEMA_ROOT}**/*Schema.ts`
+        );
         this.express.use(process.env.SWAGGER_DOC_ENDPOINT as string, 
                     swaggerUi.serve, swaggerUi.setup(spec));
         
         // Setup schema validation middleware.
         this.express.use(
-            OpenApiValidator.middleware({
+            OpenApiValidator.middleware({   
               apiSpec: spec,
               validateRequests: true,
               validateResponses: true,
@@ -111,10 +119,40 @@ export default class APIWebServer
         this.express.use((err: any, req: Request, res: Response, next: NextFunction) =>  this.onServerError);
         await this.allocateEndpoints();
         this.express.get("/", (req:Request, res:Response) => res.redirect(process.env.SWAGGER_DOC_ENDPOINT as string));
-        
 
     }
 
-    public startHTTP =  (port: number) => this.listener = http.createServer(this.express).listen(port);
-    public startHTTPS = (port:number)  => this.listener = https.createServer(this.express).listen(port);
+    private configureListener(listener: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
+                                          |https.Server<typeof http.IncomingMessage, typeof http.ServerResponse>)
+    {
+        listener.on("connection", (socket: Socket) => {
+            this.sockets.add(socket);
+
+            socket.on("close", (hadError) => {
+                if(hadError)
+                {
+                    Logger.error(this, "A socket error occured");
+                    
+                    console.dir(socket)
+                }
+
+                this.sockets.delete(socket);
+            });
+        })
+
+        return listener;
+    }
+    public startHTTP =  (port: number) => this.listener = this.configureListener(http.createServer(this.express).listen(port))
+    public startHTTPS = (port:number)  => this.listener = this.configureListener(https.createServer(this.express).listen(port));
+
+    public destroy = (listenerExitCallback?: (err?: Error | undefined) => void) => {
+        for(let socket of this.sockets)
+        {
+            socket.destroy();
+
+            this.sockets.delete(socket);
+        }
+
+        return this.listener?.close(listenerExitCallback);
+    }
 }

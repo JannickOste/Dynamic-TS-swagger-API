@@ -3,7 +3,7 @@ import Dialogue from "../entities/dialogue";
 
 export default class Database 
 {
-    private static _singleton:Database;
+    private static _singleton:Database | undefined;
     public static get Singleton()
     {
         if(this._singleton === undefined)
@@ -29,5 +29,12 @@ export default class Database
             subscribers: [],
             migrations: []
         })
+    }
+
+    public async destroy()
+    {
+        this.connector.destroy();
+
+        Database._singleton = undefined;
     }
 }

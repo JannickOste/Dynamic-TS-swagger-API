@@ -1,6 +1,6 @@
 import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 import * as core from 'express-serve-static-core';
-import { GetAPISpecMetadataOfMethod } from '../api/APISpecMetadata';
+import { GetAPISpecMetadataOfMethod } from '../api/apiSpecMetadata';
 
 
 export  type IHTTPRequestMethodType = "get" |"put" | "post" | "patch" | "delete";

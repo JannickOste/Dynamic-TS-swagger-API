@@ -1,4 +1,5 @@
 import { OpenAPIV3 } from "express-openapi-validator/dist/framework/types"
+import "reflect-metadata"
 
 type APISpecMetadataObject = {
     route:string;

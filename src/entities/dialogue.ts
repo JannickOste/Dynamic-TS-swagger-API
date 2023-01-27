@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { DialogueSchema } from "../schemas/DialogueSchema";
+import { DialogueSchema } from "../schemas/dialogueSchema";
 
 
 export type IDialogueType = Static<typeof DialogueSchema>;
