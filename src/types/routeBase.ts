@@ -1,9 +1,8 @@
 import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 import * as core from 'express-serve-static-core';
-import { GetAPISpecMetadataOfMethod } from '../api/apiSpecMetadata';
+import APISpecBuilder from '../api/apiSpecBuilder';
+import { IHTTPRequestMethodType } from './IHTTPRequestMethodType';
 
-
-export  type IHTTPRequestMethodType = "get" |"put" | "post" | "patch" | "delete";
 
 export default abstract class RouteBase 
 {
@@ -21,15 +20,16 @@ export default abstract class RouteBase
     public Setup = ():void => {
         for(let key of Object.getOwnPropertyNames(this))
         {
-            const propertyMetadata: {route:string, data: OpenAPIV3.PathItemObject} = GetAPISpecMetadataOfMethod(this, key);
-            if(propertyMetadata !== undefined)
+            const propertyMetadata: {route:string, data: OpenAPIV3.PathItemObject} = APISpecBuilder.buildSpecFromMethod(this, key)
+
+            if(propertyMetadata)
             {
                 const {route, data: pathObject} = propertyMetadata;
                 const callbackMethod = Object.getOwnPropertyDescriptor(this, key);
                 
                 for(let requestMethod of Object.keys(pathObject))
                 {
-                    this.express[requestMethod as IHTTPRequestMethodType](route, callbackMethod?.value);
+                    this.express[requestMethod as IHTTPRequestMethodType](route.replace("{", ":").replace("}", ""), callbackMethod?.value);
                 }
             }
         }

@@ -112,6 +112,7 @@ export default class apiServer
               apiSpec: spec,
               validateRequests: true,
               validateResponses: true,
+              
             })
         );
         

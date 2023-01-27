@@ -1,8 +1,11 @@
 import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 import * as glob from "glob";
-import { GetAPISpecMetadataOfMethod } from './apiSpecMetadata';
 import "reflect-metadata"
 import Logger from '../utils/logger';
+import { RouteDecoratorLabel } from './decorators/route';
+import { ResponseDecoratorLabel } from './decorators/responses';
+import { HTTPMethodDecoratorLabel } from './decorators/httpMethod';
+import { BodyDataDecoratorLabel } from './decorators/bodyData';
 
 export default class APISpecBuilder
 {
@@ -106,18 +109,65 @@ export default class APISpecBuilder
         const propNames = Object.getOwnPropertyNames(objectInstance);
         for(let propName of propNames)
         {
-          const metadata = GetAPISpecMetadataOfMethod(objectInstance, propName);
-          if(metadata)
-          {
-            const {route, data:apiSpec} = metadata;
-            if(route && apiSpec)
-              paths[route] = apiSpec;
-          }
+          const spec = APISpecBuilder.buildSpecFromMethod(objectInstance, propName);
+          if(spec)
+            paths[spec.route] = spec.data
         }
     }
 
 
     return paths;
+  }
+
+  public static buildSpecFromMethod = (obj: any, propName: string): any => {
+    const requestMethods = Reflect.getMetadata(HTTPMethodDecoratorLabel, obj, propName);
+
+    let result:OpenAPIV3.PathItemObject = {}
+
+    const route = Reflect.getMetadata(RouteDecoratorLabel, obj, propName);
+    if(route)
+    {
+      if(requestMethods)
+      {
+        for(let method of requestMethods)
+        {
+          let data: any = {}
+          data[method] = {}
+
+            data[method]["summary"] = route.description;
+
+            const bodyData = Reflect.getMetadata(BodyDataDecoratorLabel, obj, propName);
+            if(bodyData)
+            {
+              data[method]["requestBody"] = bodyData
+            }
+
+
+            const responses = Reflect.getMetadata(ResponseDecoratorLabel, obj, propName);
+            if(responses)
+            {
+              data[method]["responses"] = {}
+              for(let response of responses)
+              {
+                data[method]["responses"][response.statusCode] = {
+                  description: response.description,
+                  content: {
+                    "application/json":{
+                      schema: response.schema
+                    }
+                  }
+                }
+
+                result = {...result, ...data}
+              }
+            }
+          }
+        }
+      return {
+        route:route.route,
+        data: result
+      };
+    }
   }
 
   /**
