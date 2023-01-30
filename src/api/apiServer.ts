@@ -103,6 +103,7 @@ export default class apiServer
             `${process.env.SWAGGER_API_CONTROLLER_ROOT}**/*Controller.ts`,
             `${process.env.SWAGGER_API_SCHEMA_ROOT}**/*Schema.ts`
         );
+        
         this.express.use(process.env.SWAGGER_DOC_ENDPOINT as string, 
                     swaggerUi.serve, swaggerUi.setup(spec));
         

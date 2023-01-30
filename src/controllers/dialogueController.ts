@@ -19,11 +19,11 @@ import { BodyData } from "../api/decorators/bodyData";
 import { DialogueDeleteSchema } from "../schemas/dialogueDeleteSchema";
 import { DialogueCreateSchema } from "../schemas/dialogueCreateSchema";
 import { DialogueUpdateSchema } from "../schemas/dialogueUpdateSchema";
+import { Parameters } from "../api/decorators/parameters";
 
 export default class DialogueController extends RouteBase
 {
     private static readonly repo:Repository<Dialogue> = Database.Singleton.connector.getRepository(Dialogue);
-
 
     /**
      * Example: GET(without parameters)
@@ -48,12 +48,19 @@ export default class DialogueController extends RouteBase
         return res.status(200).json(dialogues)
     }
 
-    @HTTPMethod(["get"] as IHTTPRequestMethodType[])
-    @Route("/dialogues/id/{id}", "Get a dialogue based on it's ID.")
+    /**
+     * Example: Get using query parameters
+     * 
+     * @param req 
+     * @param res 
+     * @returns 
+     */
+    @HTTPMethod(["get"])
+    @Route("/dialogues/get", "Get a dialogue based on a field of it")
     @Responses([
         {
             statusCode: 200,
-            description: "The dialogue entity matching the specified ID parameter",
+            description: "The dialogue with the matching field",
             schema: DialogueSchema as OpenAPIV3.SchemaObject
         },
         {
@@ -63,28 +70,44 @@ export default class DialogueController extends RouteBase
         },
         {
             statusCode: 404,
-            description: "No dialogue found matching the ID",
+            description: "No dialogue found matching any of the specified fields",
             schema: BadRequestSchema as OpenAPIV3.SchemaObject
         }
     ])
-    private getDialogueById = async(req: Request, res: Response):IExpressRouteHandlerType =>
+    @Parameters([
+        { in: "query", name: "id", description: "The 'ID' of the dialogue",  schema: { type: "number", minimum: 0 } },
+        { in: "query", name: "title", description: `The 'title' of the dialogue`, schema: { type: "string", minLength: 0 } },
+        { in: "query", name: "linesCSV", description: `The 'lines' of the dialogue`, schema: { type: "string", minLength: 0 } },
+    ])
+    private getDialogue = async(req: Request, res: Response):IExpressRouteHandlerType =>
     {
-        console.dir(req.params.id)
-        if(!/[0-9]+/.test(req.params.id))
-            return res.status(400).json({
-                error: `invalid field 'id' with value '${req.params.id}' must be numeric.`
-                })
-        
-        const dialogue = await DialogueController.repo.findOne({where: {id: parseInt(req.params.id)}});
+        if(!Object.keys(req.query).length)
+            return res.status(404).json({error: 'No search query supplied'});
+
+        const dialogue = await DialogueController.repo.findOne({where: req.query})
+
         if(!dialogue)
             return res.status(404).json({
-                error: "No dialogue found with ID: "+req.params.id
+                error: `No dialogue found with found with any of the fields: ${Object.entries(req.query).map(v => `${v[0]} = ${v[1]}`).join(", ")}`
             })
         
-        console.dir(dialogue)
         return res.status(200).json(dialogue)
     }
 
+    @HTTPMethod(["get"])
+    @Route("/dialogues/test", "Teest")
+    public testRoute = async(req: Request, res: Response) => {
+        return res.status(200).json({"derp": "herp"})
+    }
+
+    /**
+     * Example: PUT request.
+     * 
+     * @param request 
+     * @param response 
+     * @param next 
+     * @returns 
+     */
     @HTTPMethod(["put"])
     @Route("/dialogue/update", "Update a dialogue entity")
     @Responses([
@@ -166,7 +189,7 @@ export default class DialogueController extends RouteBase
         {
             statusCode: 404,
             description: "Dialogue not found",
-            schema: BadRequestSchema
+            schema: BadRequestSchema as OpenAPIV3.SchemaObject
         }
     ])
     @BodyData(DialogueDeleteSchema as OpenAPIV3.SchemaObject, true)
@@ -182,6 +205,7 @@ export default class DialogueController extends RouteBase
                 error: `No dialogue match found for ['${Object.entries(request.body).map((v) => `${v[0]}:${v[1]}`).join(" or ")}'] `
             })
         
+            
         await DialogueController.repo.delete(dialogue);
         
         return response.status(204).send()

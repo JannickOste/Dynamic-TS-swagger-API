@@ -7,11 +7,12 @@ import { ResponseDecoratorLabel } from './decorators/responses';
 import { HTTPMethodDecoratorLabel } from './decorators/httpMethod';
 import { BodyDataDecoratorLabel } from './decorators/bodyData';
 import { IHTTPRequestMethodType } from '../types/IHTTPRequestMethodType';
+import { HTTPParamsDecoratorLabel } from './decorators/parameters';
 
 export default class APISpecBuilder
 {
   /**
-   * OpenAPI version: 3.0.0 (current)
+   * OpenAPI version: 3.0.0 
    */
   public static openapi = "3.0.0";
 
@@ -68,7 +69,6 @@ export default class APISpecBuilder
     const schemas: {[key:string]: OpenAPIV3.ReferenceObject|OpenAPIV3.SchemaObject} = await APISpecBuilder.getSchemas(schemaGlob);
 
     Logger.log(this, `Found ${Object.entries(schemas).length} schemas`);
-
     return {
       schemas: schemas
       
@@ -78,7 +78,7 @@ export default class APISpecBuilder
   private static async getSchemas(schemaGlob: string): Promise<{[key:string]:OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject}> 
   {
     let schemas: {[key:string]: OpenAPIV3.ReferenceObject|OpenAPIV3.SchemaObject} = {}
-
+    
     let module: any = undefined;
     for(let schemaPath of new glob.GlobSync(schemaGlob).found)
       if(module = await import(process.env.PWD+schemaPath.slice(1)))
@@ -123,7 +123,9 @@ export default class APISpecBuilder
   public static buildSpecFromMethod = (obj: any, propName: string, requestsRequireBody:IHTTPRequestMethodType[] = ["post", "put", "delete"]): any => {
     const requestMethods = Reflect.getMetadata(HTTPMethodDecoratorLabel, obj, propName);
 
-    let result:OpenAPIV3.PathItemObject = {}
+    let result:OpenAPIV3.PathItemObject = {
+
+    }
 
     const route = Reflect.getMetadata(RouteDecoratorLabel, obj, propName);
     if(route)
@@ -137,6 +139,7 @@ export default class APISpecBuilder
 
             data[method]["summary"] = route.description;
 
+            // Get body data
             const bodyData = Reflect.getMetadata(BodyDataDecoratorLabel, obj, propName);
             if(bodyData)
             {
@@ -147,7 +150,15 @@ export default class APISpecBuilder
               continue;
             }
 
+            // Get parameter data
+            const paramData = Reflect.getMetadata(HTTPParamsDecoratorLabel, obj, propName);
+            if(paramData)
+            {
+              data[method]["parameters"] = paramData;
+            }
 
+
+            // Build response schemas.
             const responses = Reflect.getMetadata(ResponseDecoratorLabel, obj, propName);
             if(responses)
             {
