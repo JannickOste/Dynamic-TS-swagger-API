@@ -75,3 +75,7 @@ export default class DialogueController extends RouteBase
     }
 }
 ```
+
+4. Run or deploy! 
+- Start locally : run start:develop
+- Or compose: docker-compose up 
