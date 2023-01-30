@@ -32,7 +32,7 @@ export default class DialogueController extends RouteBase
      * @param res 
      * @returns 
      */
-    @HTTPMethod(["get"] as IHTTPRequestMethodType[])
+    @HTTPMethod("get")
     @Route("/dialogues/", "Get all dialogue entity objects")
     @Responses([
         {
@@ -47,6 +47,7 @@ export default class DialogueController extends RouteBase
 
         return res.status(200).json(dialogues)
     }
+    
 
     /**
      * Example: Get using query parameters
@@ -55,7 +56,7 @@ export default class DialogueController extends RouteBase
      * @param res 
      * @returns 
      */
-    @HTTPMethod(["get"])
+    @HTTPMethod("get")
     @Route("/dialogues/get", "Get a dialogue based on a field of it")
     @Responses([
         {
@@ -94,7 +95,7 @@ export default class DialogueController extends RouteBase
         return res.status(200).json(dialogue)
     }
 
-    @HTTPMethod(["get"])
+    @HTTPMethod("get")
     @Route("/dialogues/test", "Teest")
     public testRoute = async(req: Request, res: Response) => {
         return res.status(200).json({"derp": "herp"})
@@ -108,7 +109,7 @@ export default class DialogueController extends RouteBase
      * @param next 
      * @returns 
      */
-    @HTTPMethod(["put"])
+    @HTTPMethod("put")
     @Route("/dialogue/update", "Update a dialogue entity")
     @Responses([
         {
@@ -156,7 +157,7 @@ export default class DialogueController extends RouteBase
      * @param res 
      * @returns 
      */
-    @HTTPMethod(["post"])
+    @HTTPMethod("post")
     @Route("/dialogues/create", 'Create a new dialogue entity')
     @Responses([
         {
@@ -179,7 +180,7 @@ export default class DialogueController extends RouteBase
      * Example Delete 
      * 
      */
-    @HTTPMethod(["delete"])
+    @HTTPMethod("delete")
     @Route("/dialogue/delete", "Delete a dialogue entity")
     @Responses([
         {
