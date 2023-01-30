@@ -8,12 +8,12 @@ This project is a deployable Docker API built with TypeScript that offers easy e
 
 ## Quick start 
 0. Configure: 
-Create an .env file based upon the .env.template containing your API & database data.
+- Create an .env file based upon the .env.template containing your API & database data.
 
 1. Create a schema: 
-Go into /src/schemas and create a @sinclair/typebox type schema. 
+- Go into /src/schemas and create a @sinclair/typebox type schema. 
 
-<b>Example:</b>
+- <b>Example:</b>
 ```
 export const DialogueSchema = Type.Strict(
     Type.Object({
@@ -28,11 +28,9 @@ export const DialogueSchema = Type.Strict(
 ```
 
 2. Create a database entity: 
-Go into /src/entities and create an entity based on a static type descriptor of the schema you just created. 
+- Go into /src/entities and create an entity based on a static type descriptor of the schema you just created. 
+- <b>Example:</b>
 ```
-/**
- * A dialogue TypeORM entity that is build upon a Swagger OpenAPIV3 type object.
- */
 @Entity()
 export default class Dialogue implements Static<typeof DialogueSchema>
 {
@@ -49,8 +47,8 @@ export default class Dialogue implements Static<typeof DialogueSchema>
 ```
 
 3. Create a route controller: 
-Go into /src/controllers and create route controller that extends the RouteBase class, 
-All controller functionality should be specified as arrow functions and require a HTTPMethod, Route & Responses decorator 
+- Go into /src/controllers and create route controller that extends the RouteBase class, All controller functionality should be specified as arrow functions and require a HTTPMethod, Route & Responses decorator 
+- <b>Example:</b>
 ```
 
 export default class DialogueController extends RouteBase
