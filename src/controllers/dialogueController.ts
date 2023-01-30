@@ -14,7 +14,6 @@ import { BadRequestSchema } from "../schemas/badRequestSchema";
 import {  Route } from "../api/decorators/route";
 import { Responses } from "../api/decorators/responses";
 import { HTTPMethod } from "../api/decorators/httpMethod";
-import { IHTTPRequestMethodType } from "../types/IHTTPRequestMethodType";
 import { BodyData } from "../api/decorators/bodyData";
 import { DialogueDeleteSchema } from "../schemas/dialogueDeleteSchema";
 import { DialogueCreateSchema } from "../schemas/dialogueCreateSchema";

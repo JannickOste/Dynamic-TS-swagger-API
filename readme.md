@@ -59,7 +59,7 @@ export default class DialogueController extends RouteBase
     /**
      * Example: GET(without parameters)
      */
-    @HTTPMethod(["get"] as IHTTPRequestMethodType[])
+    @HTTPMethod("get" as IHTTPRequestMethodType[])
     @Route("/dialogues/", "Get all dialogue entity objects")
     @Responses([
         {
