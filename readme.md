@@ -7,10 +7,10 @@
 This project is a deployable Docker API built with TypeScript that offers easy extensibility by adding schemas, view models, and controllers using Swagger UI. It features automated documentation generation and route loading based on function decorators. It includes both HTTP and HTTPS functionality and supports all request types. The base server is an Express server, and it uses TypeORM for the database connection with a custom 'Database' class using a singleton pattern. The Docker container also includes its own MariaDB server.
 
 ## Quick start 
-0. Configure: 
+0. <b>Configure:</b>
 - Create an .env file based upon the .env.template containing your API & database data.
 
-1. Create a schema: 
+1. <b>Create a schema: </b>
 - Go into /src/schemas and create a @sinclair/typebox type schema. 
 
 - <b>Example:</b>
@@ -27,7 +27,7 @@ export const DialogueSchema = Type.Strict(
 )
 ```
 
-2. Create a database entity: 
+2. <b>Create a database entity: </b>
 - Go into /src/entities and create an entity based on a static type descriptor of the schema you just created. 
 - <b>Example:</b>
 ```
@@ -46,7 +46,7 @@ export default class Dialogue implements Static<typeof DialogueSchema>
 
 ```
 
-3. Create a route controller: 
+3. <b> Create a route controller: </b>
 - Go into /src/controllers and create route controller that extends the RouteBase class, All controller functionality should be specified as arrow functions and require a HTTPMethod, Route & Responses decorator 
 - <b>Example:</b>
 ```
@@ -76,6 +76,6 @@ export default class DialogueController extends RouteBase
 }
 ```
 
-4. Run or deploy! 
+4. <b>Run or deploy! </b>
 - Start locally : run start:develop
 - Or compose: docker-compose up 
