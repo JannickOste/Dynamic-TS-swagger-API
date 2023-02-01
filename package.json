@@ -28,6 +28,7 @@
   "scripts": {
     "start": "ts-node ./src/app",
     "start:develop": "ts-node-dev ./src/app",
+    "start:docker": "docker-compose up",
     "swagger:generate": "ts-node ./src/utils/swaggerGen"
   }
 }
