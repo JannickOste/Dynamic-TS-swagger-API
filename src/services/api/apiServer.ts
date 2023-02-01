@@ -13,6 +13,8 @@ import AppService from "../../appService";
 import Logger from "../../utils/logger";
 import RouteBase from "../../types/routeBase";
 import { IExpressRouteHandlerType } from "../../types/IExpressRouteType";
+import StringUtils from "../../utils/StringUtils";
+import * as fs from "fs";
 
 type IHTTPSCredentials = {
     key:string;
@@ -38,10 +40,7 @@ export default class apiServer extends AppService
         this.express = express();
         
         super.configureCallback = this.configure;
-        super.startCallback = async() => {
-            //!Todo: Add credential check here, start HTTPS if registered, otherwise not.
-            this.startHTTP(8080);
-        }
+        super.startCallback = this.start;
     }
 
     /**
@@ -92,7 +91,6 @@ export default class apiServer extends AppService
         return !(!handlerPaths.length);
     }
 
-
     /**
      * Load enviroment data and configure application services
      */
@@ -137,7 +135,51 @@ export default class apiServer extends AppService
         this.express.use((err: any, req: Request, res: Response, next: NextFunction) =>  this.onServerError);
         await this.allocateEndpoints();
         this.express.get("/", (req:Request, res:Response) => res.redirect(process.env.SWAGGER_DOC_ENDPOINT as string));
+    }
 
+    private start = async() => {
+        const {SERVER_PORT_HTTP, SERVER_PORT_HTTPS, SERVER_DOMAIN, HTTPS_CERT, HTTPS_KEY} = process.env;
+
+        if(SERVER_DOMAIN)
+        {
+            if(SERVER_PORT_HTTP)
+            {
+                if(StringUtils.IsDigit(SERVER_PORT_HTTP))
+                {
+                    const httpPort: number = parseInt(SERVER_PORT_HTTP);
+                    Logger.log(this, `env variable 'SERVER_PORT_HTTP' found, starting server on http://${SERVER_DOMAIN}:${SERVER_PORT_HTTP}/`)
+                    this.startHTTP(httpPort);
+                } else Logger.error(this, `Failed to start API using http, value '${SERVER_PORT_HTTP}' is not a digit`)
+            }
+
+            //!Todo: Add credential check here, start HTTPS if registered, otherwise not.
+            if(SERVER_PORT_HTTPS)
+            {
+                if(!StringUtils.IsDigit(SERVER_PORT_HTTPS))
+                {
+                    Logger.error(this, "Attempting to start HTTPS listener but 'SERVER_PORT_HTTPS' env variable must be numeric.");
+                    return;
+                }
+                
+                if(!HTTPS_CERT)
+                {
+                    Logger.error(this, "Attempting to start HTTPS listener but no 'HTTPS_CERT' env variable found.");
+                    return;
+                }
+                if(!HTTPS_KEY)
+                {
+                    Logger.error(this, "Attempting to start HTTPS listener but no 'HTTPS_KEY' env variable found.");
+                    return;
+                }
+
+                const httpPort: number = parseInt(SERVER_PORT_HTTPS);
+                Logger.log(this, `env variable 'SERVER_PORT_HTTPS' found and certificate information, starting server on https://${SERVER_DOMAIN}:${SERVER_PORT_HTTPS}/`)
+                this.startHTTPS(httpPort, {
+                    certificate: fs.readFileSync(HTTPS_CERT).toString(),
+                    key: fs.readFileSync(HTTPS_KEY).toString()
+                });
+            }
+        }
     }
 
     private configureListener(listener: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
@@ -160,7 +202,10 @@ export default class apiServer extends AppService
         return listener;
     }
     public startHTTP =  (port: number) => this.listener = this.configureListener(http.createServer(this.express).listen(port))
-    public startHTTPS = (port:number)  => this.listener = this.configureListener(https.createServer(this.express).listen(port));
+    public startHTTPS = (port:number, credentials: IHTTPSCredentials)  => this.listener = this.configureListener(https.createServer({
+        key:credentials.key,
+        cert: credentials.certificate    
+    }, this.express).listen(port));
 
     public destroy = (listenerExitCallback?: (err?: Error) => void) => {
         for(let socket of this.sockets)
