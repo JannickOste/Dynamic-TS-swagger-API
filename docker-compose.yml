@@ -17,7 +17,7 @@ services:
     networks:
       - default
 
-  usage-log-server:
+  api:
     build:
       context: .
       dockerfile: /home/jannick/Desktop/Dynamic-TS-swagger-API/API.Dockerfile

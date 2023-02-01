@@ -80,3 +80,12 @@ export default class DialogueController extends RouteBase
 4. <b>Run or deploy! </b>
 - Start locally : run start:develop
 - Or compose: docker-compose up 
+
+
+## features: 
+- Docker-based deployment of the database and frontend using docker-compose
+- Automated loading of API components:
+- - Schemas from './src/schemas'
+- - Services from './src/services'
+- - Entities (database and API) from './src/entity'
+- - Controller routes defined by decorators from './src/controllers'
