@@ -1,5 +1,5 @@
 import "reflect-metadata"
-import { IHTTPRequestMethodType } from "../../types/IHTTPRequestMethodType"
+import { IHTTPRequestMethodType } from "../../../types/IHTTPRequestMethodType"
 
 export const HTTPMethodDecoratorLabel = "HTTPMethod"
 

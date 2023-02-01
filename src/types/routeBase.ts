@@ -1,6 +1,6 @@
 import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 import * as core from 'express-serve-static-core';
-import APISpecBuilder from '../api/apiSpecBuilder';
+import APISpecBuilder from '../services/api/apiSpecBuilder';
 import { IHTTPRequestMethodType } from './IHTTPRequestMethodType';
 
 
@@ -17,7 +17,7 @@ export default abstract class RouteBase
         this._express = express;
     }
 
-    public Setup = ():void => {
+    public Configure = ():void => {
         for(let key of Object.getOwnPropertyNames(this))
         {
             const propertyMetadata: {route:string, data: OpenAPIV3.PathItemObject} = APISpecBuilder.buildSpecFromMethod(this, key)

@@ -11,14 +11,14 @@ import "reflect-metadata";
 import { DialogueSchema } from "../schemas/dialogueSchema"; 
 import { NextFunction } from "express-serve-static-core";
 import { BadRequestSchema } from "../schemas/badRequestSchema";
-import {  Route } from "../api/decorators/route";
-import { Responses } from "../api/decorators/responses";
-import { HTTPMethod } from "../api/decorators/httpMethod";
-import { BodyData } from "../api/decorators/bodyData";
 import { DialogueDeleteSchema } from "../schemas/dialogueDeleteSchema";
 import { DialogueCreateSchema } from "../schemas/dialogueCreateSchema";
 import { DialogueUpdateSchema } from "../schemas/dialogueUpdateSchema";
-import { Parameters } from "../api/decorators/parameters";
+import { HTTPMethod } from "../services/api/decorators/httpMethod";
+import { Route } from "../services/api/decorators/route";
+import { Responses } from "../services/api/decorators/responses";
+import { Parameters } from "../services/api/decorators/parameters";
+import { BodyData } from "../services/api/decorators/bodyData";
 
 export default class DialogueController extends RouteBase
 {

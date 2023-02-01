@@ -1,7 +1,8 @@
 import { DataSource } from "typeorm";
+import AppService from "../appService";
 import Dialogue from "../entities/dialogue";
 
-export default class Database 
+export default class Database  extends AppService
 {
     private static _singleton:Database | undefined;
     public static get Singleton()
@@ -9,14 +10,26 @@ export default class Database
         if(this._singleton === undefined)
             this._singleton = new Database();
         
+            console.dir(this)
         return this._singleton;
     }
 
-    public readonly connector: DataSource;
+    public get connector(): DataSource{ return this._connector as DataSource}
+    private _connector: DataSource | undefined;
 
     private constructor()
     {
-        this.connector =  new DataSource({
+        super({
+            onInitMessage:`Attempting to connect to mariadb server.`,
+            onFailMessage:'Failed to connect to database...',
+            onSuccessMessage:'Succesfully connected to database.'
+        })
+
+        this.configureCallback = this.connect;
+    }
+
+    private async connect(): Promise<void> {
+        this._connector =  new DataSource({
             type: "mysql",
             host: process.env.DATABASE_HOST,
             port: parseInt(process.env.DATABASE_PORT as string),

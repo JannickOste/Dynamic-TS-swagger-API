@@ -7,18 +7,19 @@ import * as http from "http";
 import * as https from "https"
 import * as OpenApiValidator from 'express-openapi-validator';
 import glob from "glob";
-import RouteBase from "../types/routeBase";
-import { IExpressRouteHandlerType } from "../types/IExpressRouteType";
-import Logger from "../utils/logger";
 import APISpecBuilder from "./apiSpecBuilder";
 import { Socket } from "node:net";
+import AppService from "../../appService";
+import Logger from "../../utils/logger";
+import RouteBase from "../../types/routeBase";
+import { IExpressRouteHandlerType } from "../../types/IExpressRouteType";
 
 type IHTTPSCredentials = {
     key:string;
     certificate:string;
 }
 
-export default class apiServer 
+export default class apiServer extends AppService
 {    
     private readonly express:core.Express;
     private listener?:http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
@@ -28,8 +29,19 @@ export default class apiServer
 
     constructor()
     {
+        super({
+            onInitMessage:`Attempting to build API configuration`,
+            onFailMessage:'Failed to configure API endpoints',
+            onSuccessMessage:'Succesfully configure API service'
+        });
+
         this.express = express();
         
+        super.configureCallback = this.configure;
+        super.startCallback = async() => {
+            //!Todo: Add credential check here, start HTTPS if registered, otherwise not.
+            this.startHTTP(8080);
+        }
     }
 
     /**
@@ -72,7 +84,7 @@ export default class apiServer
                 {
                     Logger.log(this, `allocating endpoints for '${moduleInstance.constructor.name}'`);
 
-                    moduleInstance.Setup();
+                    moduleInstance.Configure();
                 }
             }
         }
@@ -86,12 +98,16 @@ export default class apiServer
      */
     async configure(): Promise<void>
     {        
+        Logger.log(this, "Configuring service...");
+
         // Setup response type handling
+        Logger.log(this, "Setting up text, json and body data handling");
         this.express.use(express.json())     
         this.express.use(express.text())
         this.express.use(express.urlencoded({extended: true}))
 
         // Setup cors
+        Logger.log(this, "Setting up CORS access.")
         this.express.use(cors({
             origin: '*', 
             allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept',

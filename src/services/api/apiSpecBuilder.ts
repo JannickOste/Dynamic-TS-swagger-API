@@ -1,13 +1,13 @@
 import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 import * as glob from "glob";
 import "reflect-metadata"
-import Logger from '../utils/logger';
 import { RouteDecoratorLabel } from './decorators/route';
 import { ResponseDecoratorLabel } from './decorators/responses';
 import { HTTPMethodDecoratorLabel } from './decorators/httpMethod';
 import { BodyDataDecoratorLabel } from './decorators/bodyData';
-import { IHTTPRequestMethodType } from '../types/IHTTPRequestMethodType';
 import { HTTPParamsDecoratorLabel } from './decorators/parameters';
+import Logger from '../../utils/logger';
+import { IHTTPRequestMethodType } from '../../types/IHTTPRequestMethodType';
 
 export default class APISpecBuilder
 {
