@@ -165,10 +165,20 @@ export default class apiServer extends AppService
                 {
                     Logger.error(this, "Attempting to start HTTPS listener but no 'HTTPS_CERT' env variable found.");
                     return;
+                } else if(!fs.existsSync(HTTPS_CERT))
+                {
+                    Logger.error(this, "HTTPS_CERT env variable found but path is invalid");
+                    return;
                 }
+
+
                 if(!HTTPS_KEY)
                 {
                     Logger.error(this, "Attempting to start HTTPS listener but no 'HTTPS_KEY' env variable found.");
+                    return;
+                } else if(!fs.existsSync(HTTPS_KEY))
+                {
+                    Logger.error(this, "HTTPS_KEY env variable found but path is invalid");
                     return;
                 }
 
