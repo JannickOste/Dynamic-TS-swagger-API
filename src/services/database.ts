@@ -10,7 +10,6 @@ export default class Database  extends AppService
         if(this._singleton === undefined)
             this._singleton = new Database();
         
-            console.dir(this)
         return this._singleton;
     }
 
@@ -24,7 +23,7 @@ export default class Database  extends AppService
             onFailMessage:'Failed to connect to database...',
             onSuccessMessage:'Succesfully connected to database.'
         })
-
+        
         this.configureCallback = this.connect;
     }
 
@@ -38,10 +37,12 @@ export default class Database  extends AppService
             database: process.env.DATABASE_DB,
             synchronize: true,
             logging: false,
-            entities: [Dialogue],
+            entities: [__dirname.replace(/[a-zA-Z]+$/, '')+'entities/**/*.ts'],
             subscribers: [],
             migrations: []
         })
+
+        console.dir(this.connector.options.entities)
     }
 
     public async destroy()

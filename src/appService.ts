@@ -42,7 +42,6 @@ export default abstract class AppService
     protected set startCallback(value: (...params:any[]) => Promise<any>)  {this.options.startCallback = value;}
 
     public startService = async() => {
-        if(this.onInitMessage) Logger.log(this, this.onInitMessage);
         try
         {
             if(this.onInitMessage) Logger.log(this, this.onInitMessage);
@@ -51,7 +50,7 @@ export default abstract class AppService
                 await this._configureCallback(this._configureParams);
             
             if(this._startCallback)
-                await this._startCallback(this.startParams);
+                await this._startCallback(this._startParams);
             if(this.onSuccessMessage) Logger.log(this, this.onSuccessMessage);
         } catch(err)
         {
