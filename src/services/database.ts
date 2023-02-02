@@ -1,10 +1,11 @@
-import { DataSource } from "typeorm";
+import { DataSource, Entity, PrimaryGeneratedColumn } from "typeorm";
 import AppService from "../appService";
-import Dialogue from "../entities/dialogue";
+import Dialogue from "../entities/dialogue.entity";
+import * as dotenv from "dotenv"
 
 export default class Database  extends AppService
 {
-    private static _singleton:Database | undefined;
+    private static _singleton?:Database;
     public static get Singleton()
     {
         if(this._singleton === undefined)
@@ -13,8 +14,10 @@ export default class Database  extends AppService
         return this._singleton;
     }
 
-    public get connector(): DataSource{ return this._connector as DataSource}
-    private _connector: DataSource | undefined;
+    public get connector(): DataSource{ 
+        return this._connector as DataSource
+    }
+    private _connector?: DataSource;
 
     private constructor()
     {
@@ -24,29 +27,30 @@ export default class Database  extends AppService
             onSuccessMessage:'Succesfully connected to database.'
         })
         
-        this.configureCallback = this.connect;
+        
+        this.configureCallback = async() => {
+            this._connector =  new DataSource({
+                type: "mysql",
+                host: process.env.DATABASE_HOST,
+                port: parseInt(process.env.DATABASE_PORT as string),
+                username: process.env.DATABASE_USER,
+                password: process.env.DATABASE_PASS,
+                database: process.env.DATABASE_DB,
+                synchronize: true,
+                logging: false,
+                entities: ["src/entities/*.entity.ts"],
+                subscribers: [],
+                migrations: []
+            });
+
+            await this._connector.initialize();
+        };
     }
 
-    private async connect(): Promise<void> {
-        this._connector =  new DataSource({
-            type: "mysql",
-            host: process.env.DATABASE_HOST,
-            port: parseInt(process.env.DATABASE_PORT as string),
-            username: process.env.DATABASE_USER,
-            password: process.env.DATABASE_PASS,
-            database: process.env.DATABASE_DB,
-            synchronize: true,
-            logging: false,
-            entities: [__dirname.replace(/[a-zA-Z]+$/, '')+'entities/**/*.ts'],
-            subscribers: [],
-            migrations: []
-        })
 
-        console.dir(this.connector.options.entities)
-    }
 
     public async destroy()
-    {
+    {true
         this.connector.destroy();
 
         Database._singleton = undefined;

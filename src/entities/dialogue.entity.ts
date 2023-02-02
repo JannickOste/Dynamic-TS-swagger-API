@@ -1,4 +1,4 @@
-import { Static, Type } from "@sinclair/typebox";
+import { Static } from "@sinclair/typebox";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { DialogueSchema } from "../schemas/dialogueSchema";
 

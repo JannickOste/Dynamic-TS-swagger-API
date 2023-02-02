@@ -2,12 +2,12 @@ import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 import * as glob from "glob";
 import "reflect-metadata"
 import { RouteDecoratorLabel } from './decorators/route';
-import { ResponseDecoratorLabel } from './decorators/responses';
 import { HTTPMethodDecoratorLabel } from './decorators/httpMethod';
 import { BodyDataDecoratorLabel } from './decorators/bodyData';
-import { HTTPParamsDecoratorLabel } from './decorators/parameters';
 import Logger from '../../utils/logger';
 import { IHTTPRequestMethodType } from '../../types/IHTTPRequestMethodType';
+import { QueryParameterLabel, QueryParameterOptions } from './decorators/queryParameter';
+import { HTTPResponseLabel, HTTPResponseOptions } from './decorators/httpResponse';
 
 export default class APISpecBuilder
 {
@@ -121,74 +121,75 @@ export default class APISpecBuilder
   }
 
   public static buildSpecFromMethod = (obj: any, propName: string, requestsRequireBody:IHTTPRequestMethodType[] = ["post", "put", "delete"]): any => {
+    const routeData = Reflect.getMetadata(RouteDecoratorLabel, obj, propName);
+    if(!routeData) return;
+
+    let result:OpenAPIV3.PathItemObject = {}
+
     const requestMethods = Reflect.getMetadata(HTTPMethodDecoratorLabel, obj, propName);
-
-    let result:OpenAPIV3.PathItemObject = {
-
+    if(!requestMethods)
+    {
+      Logger.error(this, `Route definition '${routeData.route}' found but no HTTPMethods specified, skipping assignment...`);
+      return;
     }
 
-    const route = Reflect.getMetadata(RouteDecoratorLabel, obj, propName);
-    if(route)
-    {
-      if(requestMethods)
+
+    for(let method of requestMethods){
+      const methodData: {[key:string]:any} =  {
+        summary: routeData.description
+      }
+
+      const bodyData = Reflect.getMetadata(BodyDataDecoratorLabel, obj, propName);
+      if(bodyData)
       {
-        for(let method of requestMethods)
-        {
-          let data: any = {}
-          data[method] = {}
+        methodData["requestBody"] = bodyData
+      } else if(requestsRequireBody.includes(method as IHTTPRequestMethodType))
+      {
+        Logger.error(this, `Attempting to assign '${method}' method without body data for endpoints '${routeData.route}' but this is marked as required, skipping generation`);
+        continue;
+      }
 
-            data[method]["summary"] = route.description;
+      // Get parameter data
+      const paramData = Reflect.getMetadata(QueryParameterLabel, obj, propName);
+      if(paramData)
+        methodData["parameters"] = this.parseQueryParameters(Reflect.getMetadata(QueryParameterLabel, obj, propName));
 
-            // Get body data
-            const bodyData = Reflect.getMetadata(BodyDataDecoratorLabel, obj, propName);
-            if(bodyData)
-            {
-              data[method]["requestBody"] = bodyData
-            } else if(requestsRequireBody.includes(method as IHTTPRequestMethodType))
-            {
-              Logger.error(this, `Attempting to assign '${method}' method without body data for endpoints '${route.route}' but this is marked as required, skipping generation`);
-              continue;
-            }
+      // Build response schemas.
+      const responses = Reflect.getMetadata(HTTPResponseLabel, obj, propName);
+      if(responses)
+      {
+        methodData["responses"] = this.parseHTTPResponses(responses)
+      }
 
-            // Get parameter data
-            const paramData = Reflect.getMetadata(HTTPParamsDecoratorLabel, obj, propName);
-            if(paramData)
-            {
-              data[method]["parameters"] = paramData;
-            }
-
-
-            // Build response schemas.
-            const responses = Reflect.getMetadata(ResponseDecoratorLabel, obj, propName);
-            if(responses)
-            {
-              data[method]["responses"] = {}
-              for(let response of responses)
-              {
-                data[method]["responses"][response.statusCode] = {
-                  description: response.description,
-                  content: {
-                    "application/json":{
-                      schema: response.schema
-                    }
-                  }
-                }
-
-                result = {...result, ...data}
-              }
-            }
-          }
-        }
+      result = {...result, ...Object.fromEntries([[method, methodData]])}
+    }
       return {
-        route:route.route,
+        route:routeData.route,
         data: result
       };
-    }
+  }
+
+  private static parseQueryParameters = (entries: {name:string, options:QueryParameterOptions}[]) => entries.map(v => {
+      return {in: "query", name:v.name, description:v.options.description, schema: v.options.schema}
+  })
+
+  private static parseHTTPResponses = (entries: {statusCode: number, options:HTTPResponseOptions}[]) => {
+    let output: any = {};
+    entries.forEach(v => {
+      output[v.statusCode] = {
+        description: v.options.description,
+        content: {
+          [v.options.mediaType as string]: {
+            schema: v.options.schema
+          }
+        }
+      }
+    })
+    return output;
   }
 
   /**
    * Build an {OpenAPIV3.Document} based on eniroment data and the specified path pattern.
-   * !TODO: change enviroment based loading to parameters based with auto-fill.
    * 
    * @param routesGlob 
    * @returns 
@@ -198,7 +199,7 @@ export default class APISpecBuilder
     return {
       openapi: APISpecBuilder.openapi,
       info: APISpecBuilder.info,
-      paths: await APISpecBuilder.getPaths(routesGlob),//await APISpecBuilder.getPaths(routesGlob),
+      paths: await APISpecBuilder.getPaths(routesGlob),
       components: await APISpecBuilder.getComponents(schemasGlob),
       externalDocs: APISpecBuilder.externalDocs,
       security: APISpecBuilder.security,
