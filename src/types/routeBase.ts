@@ -20,7 +20,7 @@ export default abstract class RouteBase
     public Configure = ():void => {
         for(let key of Object.getOwnPropertyNames(this))
         {
-            const propertyMetadata: {route:string, data: OpenAPIV3.PathItemObject} = APISpecBuilder.buildSpecFromMethod(this, key)
+            const propertyMetadata: {route:string, data: OpenAPIV3.PathItemObject} |undefined = APISpecBuilder.buildSpecFromMethod(this, key)
 
             if(propertyMetadata)
             {

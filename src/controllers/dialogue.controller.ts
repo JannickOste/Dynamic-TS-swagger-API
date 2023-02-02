@@ -8,17 +8,18 @@ import { OpenAPIV3 } from "express-openapi-validator/dist/framework/types";
 import { Type } from "@sinclair/typebox";
 import mapper from "../utils/mapper";
 import "reflect-metadata";
-import { DialogueSchema } from "../schemas/dialogueSchema"; 
+import { DialogueSchema } from "../schemas/dialogue.schema"; 
 import { NextFunction } from "express-serve-static-core";
-import { BadRequestSchema } from "../schemas/badRequestSchema";
-import { DialogueDeleteSchema } from "../schemas/dialogueDeleteSchema";
-import { DialogueCreateSchema } from "../schemas/dialogueCreateSchema";
-import { DialogueUpdateSchema } from "../schemas/dialogueUpdateSchema";
+import { BadRequestSchema } from "../schemas/badRequest.schema";
+import { DialogueDeleteSchema } from "../schemas/dialogueDelete.schema";
+import { DialogueCreateSchema } from "../schemas/dialogueCreate.schema";
+import { DialogueUpdateSchema } from "../schemas/dialogueUpdate.schema";
 import { HTTPMethod } from "../services/api/decorators/httpMethod";
 import { Route } from "../services/api/decorators/route";
 import { BodyData } from "../services/api/decorators/bodyData";
 import { QueryParameter } from "../services/api/decorators/queryParameter";
 import { HTTPResponse } from "../services/api/decorators/httpResponse";
+import { PathParameter } from "../services/api/decorators/pathParameter";
 
 export default class DialogueController extends RouteBase
 {
@@ -50,14 +51,14 @@ export default class DialogueController extends RouteBase
      * @returns 
      */
     @HTTPMethod("get")
-    @Route("/[controller]/get", "Get a dialogue based on a field of it")
+    @Route("/[controller]/[target]", "Get a dialogue based on a field of it")
     @HTTPResponse(200, {description: "The dialogue with the matching field", schema: DialogueSchema as OpenAPIV3.SchemaObject })
     @HTTPResponse(400, {description: "Bad request - fields not supplied", schema: BadRequestSchema as OpenAPIV3.SchemaObject })
-    @HTTPResponse(404, {description: "No dialogue found matching any of the specified fields", schema: DialogueSchema as OpenAPIV3.SchemaObject })
+    @HTTPResponse(404, {description: "No dialogue found matching any of the specified fields", schema: BadRequestSchema as OpenAPIV3.SchemaObject })
     @QueryParameter("id", {schema: { type: "number", minimum: 0 }, description: "The 'ID' of the dialogue"})
     @QueryParameter("title", {schema: { type: "string", minLength: 0 }, description: "The 'title' of the dialogue"})
     @QueryParameter("linesCSV", {schema: { type: "string", minLength: 0 },  description: `The 'linesCSV' of the dialogue`})
-    private getDialogue = async(req: Request, res: Response):IExpressRouteHandlerType =>
+    private getUsingQuery = async(req: Request, res: Response):IExpressRouteHandlerType =>
     {
         if(!Object.keys(req.query).length)
             return res.status(404).json({error: 'No search query supplied'});
@@ -68,8 +69,22 @@ export default class DialogueController extends RouteBase
             return res.status(404).json({
                 error: `No dialogue found with found with any of the fields: ${Object.entries(req.query).map(v => `${v[0]} = ${v[1]}`).join(", ")}`
             })
+        console.dir(dialogue)
         
         return res.status(200).json(dialogue)
+    }
+
+    /**
+     * Example get using 
+     */
+    @HTTPMethod("get")
+    @Route("/[controller]/[target]/{id}")
+    @PathParameter("id", {description: "The ID of the dialogue.", schema: {type: "number", minimum: 1}})
+    @HTTPResponse(200, {description: "Dialogue with the matching ID", schema: DialogueSchema as OpenAPIV3.SchemaObject})
+    public getUsingPath = async(request:Request, response:Response):IExpressRouteHandlerType => {
+        console.dir(request.body)
+        //const result = DialogueController.repo.findOne({where: {id: }})
+        return response.send(200).json({});
     }
 
     /**

@@ -75,7 +75,7 @@
  * - 511: Network Authentication Required.
  * - 599: Network Connect Timeout Error.
  */
-export type HTTPStatusCode = 
+export type IHTTPStatusCode = 
     100 | 101 | 102 | 103
     | 200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | 208 | 226
     | 300 | 301 | 302 | 303  | 304 | 305 | 306 | 307 | 308

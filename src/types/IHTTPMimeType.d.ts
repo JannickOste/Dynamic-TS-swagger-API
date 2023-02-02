@@ -1,5 +1,5 @@
 
-export type HTTPMimeType = "audio/aac"|"application/x-abiword"|"application/x-freearc"|"image/avif"|"video/x-msvideo"|"application/vnd.amazon.ebook"
+export type IHTTPMimeType = "audio/aac"|"application/x-abiword"|"application/x-freearc"|"image/avif"|"video/x-msvideo"|"application/vnd.amazon.ebook"
                             |"image/bmp"|"application/x-bzip"|"application/x-bzip2"|"application/x-cdf"|"application/x-csh"|"text/css"|"test/csv"
                             |"application/msword"|"application/msword"|"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                             |"application/vnd.ms-fontobject"|"application/epub+zip"|"application/gzip"|"image/gif"|"text/html"

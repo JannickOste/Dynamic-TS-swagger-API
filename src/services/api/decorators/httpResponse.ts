@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { OpenAPIV3 } from "express-openapi-validator/dist/framework/types";
-import { HTTPStatusCode } from "../../../types/HTTPStatusCode";
+import { IHTTPStatusCode } from "../../../types/IHTTPStatusCode";
 
 export type HTTPResponseOptions = {
     description?:string;
@@ -10,7 +10,7 @@ export type HTTPResponseOptions = {
 
 export const HTTPResponseLabel = "HTTPResponse"
 
-export const HTTPResponse = (statusCode: HTTPStatusCode, options?: HTTPResponseOptions) => {
+export const HTTPResponse = (statusCode: IHTTPStatusCode, options?: HTTPResponseOptions) => {
     return (target:any, propName:string) => {
         if(!options) options = {mediaType: "application/json"}
         else if(!options.mediaType) options["mediaType"] = "application/json";

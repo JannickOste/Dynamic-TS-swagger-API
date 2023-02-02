@@ -1,7 +1,7 @@
 import Database from "./services/database";
 import AppService from "./appService";
 import * as dotenv from "dotenv"
-import apiServer from "./services/api/apiServer";
+import APIServerService from "./services/api/apiServer";
 
 
 export class App 
@@ -9,7 +9,7 @@ export class App
     // Application services, mayby replace this using glob patern?
     private readonly services:Set<AppService> = new Set([
         Database.Singleton,
-        new apiServer()
+        new APIServerService()
     ].map(v => v as AppService));
 
     /**

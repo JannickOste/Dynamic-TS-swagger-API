@@ -6,7 +6,7 @@ import * as core from 'express-serve-static-core';
 import * as http from "http";
 import * as https from "https"
 import * as OpenApiValidator from 'express-openapi-validator';
-import glob from "glob";
+import glob, { GlobSync } from "glob";
 import APISpecBuilder from "./apiSpecBuilder";
 import { Socket } from "node:net";
 import AppService from "../../appService";
@@ -21,7 +21,7 @@ type IHTTPSCredentials = {
     certificate:string;
 }
 
-export default class apiServer extends AppService
+export default class APIServerService extends AppService
 {    
     private readonly express:core.Express;
     private listener?:http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
@@ -68,7 +68,8 @@ export default class apiServer extends AppService
      */
     private async allocateEndpoints():Promise<boolean>
     {
-        const handlerPaths = new glob.GlobSync(`${process.env.SWAGGER_API_CONTROLLER_ROOT}**/*Controller.ts`).found.map((v) => `${process.env.PWD}${v.slice(1)}`)
+        const {SWAGGER_API_CONTROLLER_NAME_SUFFIX, SWAGGER_API_CONTROLLER_ROOT, SWAGGER_API_SCHEMA_NAME_SUFFIX} = process.env
+        const handlerPaths = new glob.GlobSync(`${SWAGGER_API_CONTROLLER_ROOT}**/*${SWAGGER_API_CONTROLLER_NAME_SUFFIX}.{ts, js}`).found.map((v) => `${process.env.PWD}${v.slice(1)}`)
         
 
         Logger.log(this, `Found ${handlerPaths.length} controllers`)
@@ -114,8 +115,8 @@ export default class apiServer extends AppService
 
         // Build the API metadata and bind to swaggerUI
         const spec = await new APISpecBuilder().build(
-            `${process.env.SWAGGER_API_CONTROLLER_ROOT}**/*Controller.ts`,
-            `${process.env.SWAGGER_API_SCHEMA_ROOT}**/*Schema.ts`
+            `${process.env.SWAGGER_API_CONTROLLER_ROOT}**/*${process.env.SWAGGER_API_CONTROLLER_NAME_SUFFIX}.{ts, js}`,
+            `${process.env.SWAGGER_API_SCHEMA_ROOT}**/*${process.env.SWAGGER_API_SCHEMA_NAME_SUFFIX}.{ts, js}`
         );
         
         this.express.use(process.env.SWAGGER_DOC_ENDPOINT as string, 
