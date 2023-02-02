@@ -32,7 +32,7 @@ export default class DialogueController extends RouteBase
      * @returns 
      */
     @HTTPMethod("get")
-    @Route("/dialogues/", "Get all dialogue entity objects")
+    @Route("/[controller]/", "Get all dialogue entity objects")
     @HTTPResponse(200,{description: "All dialogue entity object", schema: Type.Array(DialogueSchema) as OpenAPIV3.SchemaObject })
     private getAllDialogues = async(req: Request, res:Response):IExpressRouteHandlerType =>
     {
@@ -50,7 +50,7 @@ export default class DialogueController extends RouteBase
      * @returns 
      */
     @HTTPMethod("get")
-    @Route("/dialogues/get", "Get a dialogue based on a field of it")
+    @Route("/[controller]/get", "Get a dialogue based on a field of it")
     @HTTPResponse(200, {description: "The dialogue with the matching field", schema: DialogueSchema as OpenAPIV3.SchemaObject })
     @HTTPResponse(400, {description: "Bad request - fields not supplied", schema: BadRequestSchema as OpenAPIV3.SchemaObject })
     @HTTPResponse(404, {description: "No dialogue found matching any of the specified fields", schema: DialogueSchema as OpenAPIV3.SchemaObject })
@@ -81,7 +81,7 @@ export default class DialogueController extends RouteBase
      * @returns 
      */
     @HTTPMethod("put")
-    @Route("/dialogue/update", "Update a dialogue entity")
+    @Route("/[controller]/update", "Update a dialogue entity")
     @HTTPResponse(200, { description: "Succesfully updated the dialogue entity.",schema: DialogueSchema as OpenAPIV3.SchemaObject})
     @HTTPResponse(400, { description: "Invalid request.",schema: BadRequestSchema as OpenAPIV3.SchemaObject})
     @HTTPResponse(404, { description: "Dialogue entity not found",schema: BadRequestSchema as OpenAPIV3.SchemaObject})
@@ -115,7 +115,7 @@ export default class DialogueController extends RouteBase
      * @returns 
      */
     @HTTPMethod("post")
-    @Route("/dialogues/create", 'Create a new dialogue entity')
+    @Route("/[controller]/create", 'Create a new dialogue entity')
     @HTTPResponse(200,{ description: 'The newly created dialogue entity data.',schema: DialogueSchema as OpenAPIV3.SchemaObject})
     @BodyData(DialogueCreateSchema as OpenAPIV3.SchemaObject, true)
     private createDialogue = async(req: Request, res:Response): IExpressRouteHandlerType =>
@@ -132,7 +132,7 @@ export default class DialogueController extends RouteBase
      * 
      */
     @HTTPMethod("delete")
-    @Route("/dialogue/delete", "Delete a dialogue entity")
+    @Route("/[controller]/delete", "Delete a dialogue entity")
     @HTTPResponse(204, {description: "Dialogue succesfully deleted"})
     @HTTPResponse(404, {description: "Dialogue not found", schema: BadRequestSchema as OpenAPIV3.SchemaObject})
     @BodyData(DialogueDeleteSchema as OpenAPIV3.SchemaObject, true)

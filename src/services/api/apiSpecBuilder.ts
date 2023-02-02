@@ -101,7 +101,8 @@ export default class APISpecBuilder
    */
   private static async getPaths(routesGlob:string): Promise<OpenAPIV3.PathsObject>
   {
-    const paths: OpenAPIV3.PathsObject = {}
+    const paths: OpenAPIV3.PathsObject = {
+    }
 
     for(let path of new glob.GlobSync(routesGlob).found)
     {
@@ -136,7 +137,8 @@ export default class APISpecBuilder
 
     for(let method of requestMethods){
       const methodData: {[key:string]:any} =  {
-        summary: routeData.description
+        summary: routeData.description,
+        tags: [obj.constructor.name.replace("Controller", "")]
       }
 
       const bodyData = Reflect.getMetadata(BodyDataDecoratorLabel, obj, propName);

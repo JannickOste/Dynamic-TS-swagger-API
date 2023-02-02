@@ -29,10 +29,11 @@ export default abstract class RouteBase
                 
                 for(let requestMethod of Object.keys(pathObject))
                 {
+                    if(requestMethod !== "description")
                     this.express[requestMethod as IHTTPRequestMethodType](route.replace("{", ":").replace("}", ""), callbackMethod?.value);
                 }
             }
-        }
+        }   
     }
 
 }
