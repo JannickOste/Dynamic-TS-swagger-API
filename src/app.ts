@@ -1,8 +1,9 @@
 import Database from "./services/database/database.service";
-import AppService from "./appService";
+import AppServiceModel from "./services/appServiceModel";
 import * as dotenv from "dotenv"
 import APIService from "./services/api/api.service";
-import AppServiceManager from "./appServiceManager";
+import AppServiceManager from "./services/appServiceManager";
+import JWTTokenEntity from "./entities/internal/jwt.entity";
 
 
 export class App 

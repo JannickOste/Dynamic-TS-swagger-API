@@ -9,7 +9,7 @@ import * as OpenApiValidator from 'express-openapi-validator';
 import glob, { GlobSync } from "glob";
 import APISpecBuilder from "./apiSpecBuilder";
 import { Socket } from "node:net";
-import AppService from "../../appService";
+import AppServiceModel from "../appServiceModel";
 import Logger from "../../utils/logger";
 import RouteBase from "../../types/routeBase";
 import { IExpressRouteHandlerType } from "../../types/IExpressRouteType";
@@ -21,7 +21,7 @@ type IHTTPSCredentials = {
     certificate:string;
 }
 
-export default class APIService extends AppService
+export default class APIService extends AppServiceModel
 {    
     private readonly express:core.Express;
     private listener?:http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
@@ -44,23 +44,6 @@ export default class APIService extends AppService
         super.startCallback = this.start;
     }
 
-    /**
-     * Error handler middleware upon server error.
-     * 
-     * @param error 
-     * @param request 
-     * @param response 
-     * @param next 
-     * @returns 
-     */
-    private async onServerError(error: any, request: Request, response: Response, next: NextFunction):Promise<IExpressRouteHandlerType>
-    {
-        // format error
-        return response.status(error.status || 500).json({
-            message: error.message,
-            errors: error.errors,
-        });
-    }
 
     /**
      * Scrape APISpecMetadata from controller functions and map controllers based found metadata.
@@ -100,6 +83,7 @@ export default class APIService extends AppService
     {        
         Logger.log(this, "Configuring service...");
 
+        this.express.get("/", (req:Request, res:Response) => res.redirect(process.env.SWAGGER_DOC_ENDPOINT as string));
         // Setup response type handling
         Logger.log(this, "Setting up text, json and body data handling");
         this.express.use(express.json())     
@@ -134,9 +118,7 @@ export default class APIService extends AppService
         );
         
         
-        this.express.use((err: any, req: Request, res: Response, next: NextFunction) =>  this.onServerError);
         await this.allocateEndpoints();
-        this.express.get("/", (req:Request, res:Response) => res.redirect(process.env.SWAGGER_DOC_ENDPOINT as string));
     }
 
     private start = async() => {

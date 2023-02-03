@@ -10,6 +10,9 @@ import { QueryParameterLabel, QueryParameterOptions } from './decorators/queryPa
 import { HTTPResponseLabel, HTTPResponseOptions } from './decorators/httpResponse';
 import { PathParameterLabel, PathParameterOptions } from './decorators/pathParameter';
 import RouteBase from '../../types/routeBase';
+import Database from '../database/database.service';
+import JWTTokenEntity from '../../entities/internal/jwt.entity';
+import { JWTTokenLabel, SecurityDecoratorLabel } from './decorators/jwtToken';
 
 /**
  * Class for building OpenAPI specification for the API service.
@@ -20,12 +23,12 @@ export default class APISpecBuilder
 {
   //#region Getters
   /**
-   * Returns the OpenAPI version (3.0.0).
+   * Returns the OpenAPI version (3.0.3).
    * @returns OpenAPI version as string
    */
   public static get openapi(): string
   {
-    return "3.0.0";
+    return "3.0.3";
   } 
 
   /**
@@ -90,8 +93,14 @@ export default class APISpecBuilder
 
     Logger.log(this, `Found ${Object.entries(schemas).length} schemas`);
     return {
-      schemas: schemas
-      
+      schemas: schemas,
+      securitySchemes: {
+        [JWTTokenLabel]: {       
+            type: 'http',
+            scheme: "bearer",
+            bearerFormat: "JWT"
+        }
+      }
     }
   }
 
@@ -115,11 +124,12 @@ export default class APISpecBuilder
     return schemas;
   }
 
-  /**
-   * Security requirements for API.
-   */
-  private static security?: OpenAPIV3.SecurityRequirementObject[];
 
+  private static getSecurity = async() => [
+    {
+      [JWTTokenLabel]: (await Database.Singleton.connector.getRepository(JWTTokenEntity).find()).map(tokenEntity => tokenEntity.token)
+    }
+  ]
   /**
    * API tags.
   */
@@ -229,8 +239,13 @@ export default class APISpecBuilder
       const methodData: {[key:string]:any} =  {
         summary: routeData.description,
         tags: [obj.constructor.name.replace("Controller", "")],
-        parameters: []
+        parameters: [],
+        security:[]
       }
+
+      const security = Reflect.getMetadata(SecurityDecoratorLabel, obj, propName);
+      if(security)
+        methodData["security"] = security;
 
       const bodyData = Reflect.getMetadata(BodyDataDecoratorLabel, obj, propName);
       if(bodyData)
@@ -299,7 +314,7 @@ export default class APISpecBuilder
       paths: await APISpecBuilder.getPaths(controllerGlob),
       components: await APISpecBuilder.getComponents(schemasGlob),
       externalDocs: APISpecBuilder.externalDocs,
-      security: APISpecBuilder.security,
+      security: await APISpecBuilder.getSecurity(),
       servers: APISpecBuilder.servers,
       tags: APISpecBuilder.tags
     }

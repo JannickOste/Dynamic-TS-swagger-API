@@ -20,6 +20,7 @@ import { BodyData } from "../services/api/decorators/bodyData";
 import { QueryParameter } from "../services/api/decorators/queryParameter";
 import { HTTPResponse } from "../services/api/decorators/httpResponse";
 import { PathParameter } from "../services/api/decorators/pathParameter";
+import { JWTToken } from "../services/api/decorators/jwtToken";
 
 export default class DialogueController extends RouteBase
 {

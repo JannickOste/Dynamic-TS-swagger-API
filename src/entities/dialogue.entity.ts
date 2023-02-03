@@ -5,7 +5,7 @@ import { DialogueSchema } from "../schemas/dialogue.schema";
 /**
  * A dialogue TypeORM entity that is build upon a Swagger OpenAPIV3 type object.
  */
-@Entity("dialogue")
+@Entity("Dialogue")
 export default class Dialogue implements Static<typeof DialogueSchema>
 {
     @PrimaryGeneratedColumn("increment")

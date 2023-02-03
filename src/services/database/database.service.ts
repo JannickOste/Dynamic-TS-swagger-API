@@ -1,9 +1,9 @@
 import { DataSource, Entity, PrimaryGeneratedColumn } from "typeorm";
-import AppService from "../../appService";
+import AppServiceModel from "../appServiceModel";
 import Dialogue from "../../entities/dialogue.entity";
 import * as dotenv from "dotenv"
 
-export default class Database  extends AppService
+export default class Database  extends AppServiceModel
 {
     private static _singleton?:Database;
     public static get Singleton()
@@ -32,6 +32,8 @@ export default class Database  extends AppService
         
         
         this.configureCallback = async() => {
+            const {APPLICATION_ENTITIES_ROOT, APPLICATION_ENTITIES_PREFIX} = process.env;
+            console.log(`${APPLICATION_ENTITIES_ROOT}**/*${APPLICATION_ENTITIES_PREFIX}.{ts, js}`);
             this._connector =  new DataSource({
                 type: "mysql",
                 host: process.env.DATABASE_HOST,
@@ -41,7 +43,7 @@ export default class Database  extends AppService
                 database: process.env.DATABASE_DB,
                 synchronize: true,
                 logging: false,
-                entities: ["src/entities/*.entity.ts"],
+                entities: [`${APPLICATION_ENTITIES_ROOT}**/*${APPLICATION_ENTITIES_PREFIX}.{ts, js}`],
                 subscribers: [],
                 migrations: []
             });

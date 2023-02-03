@@ -1,14 +1,14 @@
 import { glob, GlobSync } from "glob";
-import AppService from "./appService";
-import Logger from "./utils/logger";
+import AppServiceModel from "./appServiceModel";
+import Logger from "../utils/logger";
 
 export default class AppServiceManager 
 {
-    private static services?: Set<AppService> = new Set<AppService>();
+    private static services?: Set<AppServiceModel> = new Set<AppServiceModel>();
 
-    private static getServices = async(nullOnError:boolean = true): Promise<Set<AppService>|undefined> =>
+    private static getServices = async(nullOnError:boolean = true): Promise<Set<AppServiceModel>|undefined> =>
     {
-        let output: Set<AppService> = new Set<AppService>();
+        let output: Set<AppServiceModel> = new Set<AppServiceModel>();
 
         const {APPLICATION_SERVICES_ROOT, APPLICATION_SERVICES_PREFIX} = process.env;
         for(let globPath of new GlobSync(`${APPLICATION_SERVICES_ROOT}**/*${APPLICATION_SERVICES_PREFIX}.{ts, js}`).found)
@@ -52,7 +52,7 @@ export default class AppServiceManager
             return false;
         }
 
-        let currentService: AppService | undefined;
+        let currentService: AppServiceModel | undefined;
         let serviceQueue = [... this.services.values()].sort((a, b) => 
             b.priority !== undefined && a.priority !== undefined 
             ? 1

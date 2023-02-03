@@ -1,5 +1,5 @@
-import Logger from "./utils/logger";
-import mapper from "./utils/mapper";
+import Logger from "../utils/logger";
+import mapper from "../utils/mapper";
 
 type AppServiceOptions = { 
     onInitMessage?:string;
@@ -13,7 +13,7 @@ type AppServiceOptions = {
     configureCallback?: ((...params:any[]) => Promise<any>) | (() => Promise<any>);
 }
 
-export default abstract class AppService 
+export default abstract class AppServiceModel 
 {
     private options: AppServiceOptions = {};
 
