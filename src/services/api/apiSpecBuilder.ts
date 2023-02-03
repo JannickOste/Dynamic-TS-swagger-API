@@ -263,7 +263,7 @@ export default class APISpecBuilder
 
         Logger.warning('APISpecBuilder', `Path parameters are currently disabled, unable to load route params for '${routeData.route}', skipping assignment...`);
         return;
-        //methodData.parameters = [...methodData.parameters, parsedParamData]
+        methodData.parameters = [...methodData.parameters, parsedParamData]
       }
 
 

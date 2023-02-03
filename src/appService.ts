@@ -8,8 +8,9 @@ type AppServiceOptions = {
     serviceRequired?:true;
     startParams?:any[];
     configureParams?:any[];
+    priority?:number;
     startCallback?: ((...params:any[]) => Promise<any>) | (() => Promise<any>)
-    configureCallback?: ((...params:any[]) => Promise<any>) | (() => Promise<any>)
+    configureCallback?: ((...params:any[]) => Promise<any>) | (() => Promise<any>);
 }
 
 export default abstract class AppService 
@@ -21,6 +22,9 @@ export default abstract class AppService
         if(options)
             this.options = options;
     }
+
+    protected set _priority(value:number){}
+    public get priority() {return this._priority;}
 
     // Messages
     public get onInitMessage():string|undefined {return this.options.onInitMessage; }
@@ -63,5 +67,6 @@ export default abstract class AppService
             
         }
     }
-
+    
+    public async stopService?():Promise<void>;
 } 

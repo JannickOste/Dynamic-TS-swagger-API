@@ -21,7 +21,7 @@ type IHTTPSCredentials = {
     certificate:string;
 }
 
-export default class APIServerService extends AppService
+export default class APIService extends AppService
 {    
     private readonly express:core.Express;
     private listener?:http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
@@ -34,7 +34,8 @@ export default class APIServerService extends AppService
         super({
             onInitMessage:`Attempting to build API configuration`,
             onFailMessage:'Failed to configure API endpoints',
-            onSuccessMessage:'Succesfully configure API service'
+            onSuccessMessage:'Succesfully configure API service',
+            priority: 1
         });
 
         this.express = express();

@@ -1,6 +1,6 @@
 import { DataSource, Entity, PrimaryGeneratedColumn } from "typeorm";
-import AppService from "../appService";
-import Dialogue from "../entities/dialogue.entity";
+import AppService from "../../appService";
+import Dialogue from "../../entities/dialogue.entity";
 import * as dotenv from "dotenv"
 
 export default class Database  extends AppService
@@ -8,10 +8,7 @@ export default class Database  extends AppService
     private static _singleton?:Database;
     public static get Singleton()
     {
-        if(this._singleton === undefined)
-            this._singleton = new Database();
-        
-        return this._singleton;
+        return this._singleton as Database;
     }
 
     public get connector(): DataSource{ 
@@ -21,11 +18,17 @@ export default class Database  extends AppService
 
     private constructor()
     {
+        if(Database.Singleton !== undefined)
+            throw new Error("Database singleton is already initialized");
+
         super({
             onInitMessage:`Attempting to connect to mariadb server.`,
             onFailMessage:'Failed to connect to database...',
-            onSuccessMessage:'Succesfully connected to database.'
+            onSuccessMessage:'Succesfully connected to database.',
+            priority: 0
         })
+
+        Database._singleton = this;
         
         
         this.configureCallback = async() => {

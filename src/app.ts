@@ -1,16 +1,17 @@
-import Database from "./services/database";
+import Database from "./services/database/database.service";
 import AppService from "./appService";
 import * as dotenv from "dotenv"
-import APIServerService from "./services/api/apiServer";
+import APIService from "./services/api/api.service";
+import AppServiceManager from "./appServiceManager";
 
 
 export class App 
 {
-    // Application services, mayby replace this using glob patern?
-    private readonly services:Set<AppService> = new Set([
-        Database.Singleton,
-        new APIServerService()
-    ].map(v => v as AppService));
+    constructor()
+    {
+        // Setup enviroment variables.
+        dotenv.config();
+    }
 
     /**
      * Configure env and start services.
@@ -19,18 +20,15 @@ export class App
      */
     public async start(): Promise<number>
     {
-        // Setup enviroment variables.
-        dotenv.config();
+        await AppServiceManager.loadServices();
 
-        // Start application services.
-        for(let service of this.services)
-            await service.startService();
-        
         return 0;
     }
 
-    public async destroy () {
-        await Database.Singleton.destroy();
+    public async Stop(): Promise<number>
+    {
+        await AppServiceManager.destroyServices();
+        return 0;
     }
 
 }

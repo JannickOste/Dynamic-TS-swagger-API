@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import Database from "../services/database";
+import Database from "../services/database/database.service";
 import Dialogue from "../entities/dialogue.entity";
 import RouteBase from "../types/routeBase";
 import { Request, Response } from "express";
@@ -79,7 +79,7 @@ export default class DialogueController extends RouteBase
      */
     @HTTPMethod("get")
     @Route("/[controller]/[target]/{id}")
-    @PathParameter("id", {description: "The ID of the dialogue.", schema: {type: "number", minimum: 1}})
+    @PathParameter("id", {description: "The ID of the dialogue.", schema: {type: "number", minimum: 1, default: 1}})
     @HTTPResponse(200, {description: "Dialogue with the matching ID", schema: DialogueSchema as OpenAPIV3.SchemaObject})
     public getUsingPath = async(request:Request, response:Response):IExpressRouteHandlerType => {
         console.dir(request.body)
