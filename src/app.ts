@@ -10,7 +10,7 @@ export class App
 {
     constructor()
     {
-        // Setup enviroment variables.
+        // Setup environment variables.
         dotenv.config();
     }
 
@@ -34,11 +34,8 @@ export class App
 
 }
 
-if(process.env.PWD === process.env.INIT_CWD)
-{
-    (async() => {
-        const application = new App();
-    
-        await application.start();
-    })()
-} 
+(async() => {
+    const application = new App();
+
+    await application.start();
+})()

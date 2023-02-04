@@ -68,7 +68,7 @@ export default class AppServiceManager
                 Logger.error(this, `Failed start service ${currentService.constructor.name}`);
             else 
             {
-                Logger.error(this, "Unkown error:");
+                Logger.error(this, "Unknown error:");
                 Logger.exception(this, (err as Error).message);
             }
 

@@ -89,7 +89,9 @@ export default class APIService extends AppServiceModel
         this.express.use(express.json())     
         this.express.use(express.text())
         this.express.use(express.urlencoded({extended: true}))
+        this.express.disable("x-powered-by");
 
+        this.express.disable("x-powered-by")
         // Setup cors
         Logger.log(this, "Setting up CORS access.")
         this.express.use(cors({
