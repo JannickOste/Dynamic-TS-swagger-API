@@ -24,8 +24,8 @@ type IHTTPSCredentials = {
 export default class APIService extends AppServiceModel
 {    
     private readonly express:core.Express;
-    private listener?:http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
-                        |https.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
+    private listeners:(http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
+                        |https.Server<typeof http.IncomingMessage, typeof http.ServerResponse>)[] = [];
 
     private sockets: Set<Socket> = new Set();
 
@@ -34,7 +34,7 @@ export default class APIService extends AppServiceModel
         super({
             onInitMessage:`Attempting to build API configuration`,
             onFailMessage:'Failed to configure API endpoints',
-            onSuccessMessage:'Succesfully configure API service',
+            onSuccessMessage:'Successfully configure API service',
             priority: 1
         });
 
@@ -77,7 +77,7 @@ export default class APIService extends AppServiceModel
     }
 
     /**
-     * Load enviroment data and configure application services
+     * Load environment data and configure application services
      */
     async configure(): Promise<void>
     {        
@@ -189,7 +189,7 @@ export default class APIService extends AppServiceModel
             socket.on("close", (hadError) => {
                 if(hadError)
                 {
-                    Logger.error(this, "A socket error occured");
+                    Logger.error(this, "A socket error occurred");
                     console.dir(socket)
                 }
 
@@ -197,15 +197,34 @@ export default class APIService extends AppServiceModel
             });
         })
 
+        this.listeners.push(listener);
         return listener;
     }
-    public startHTTP =  (port: number) => this.listener = this.configureListener(http.createServer(this.express).listen(port))
-    public startHTTPS = (port:number, credentials: IHTTPSCredentials)  => this.listener = this.configureListener(https.createServer({
+    /**
+     * Start the API service using HTTP on a specified port.
+     * 
+     * @param port The port to start listening on.
+     * @returns HTTP listener.
+     */
+    public startHTTP =  (port: number) => this.configureListener(http.createServer(this.express).listen(port))
+
+    /**
+     * Start the API Service using HTTPS on a specified port.
+     * 
+     * @param port The port to start listening on.
+     * @param credentials The HTTPS key/certificate path data.
+     * 
+     * @returns HTTPS listener.
+     */
+    public startHTTPS = (port:number, credentials: IHTTPSCredentials)  =>  this.configureListener(https.createServer({
         key:credentials.key,
         cert: credentials.certificate    
     }, this.express).listen(port));
 
-    public destroy = (listenerExitCallback?: (err?: Error) => void) => {
+    /**
+     * Stop transmission between all connected server sockets and stop 
+     */
+    public stopService = async() => {
         for(let socket of this.sockets)
         {
             socket.destroy();
@@ -213,6 +232,7 @@ export default class APIService extends AppServiceModel
             this.sockets.delete(socket);
         }
 
-        return this.listener?.close(listenerExitCallback);
+        for(let listener of this.listeners)
+            listener.close();
     }
 }
